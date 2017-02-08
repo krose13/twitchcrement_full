@@ -1,0 +1,23 @@
+{% load static %}
+
+<html>
+  <head>
+  </head>
+  <body>
+
+    Spamviewer front page</br>
+    <select id="channel_selector">
+      <option value="---" href="">---</option>
+      {% for channame in startup_channels %}
+      <option value="{{channame}}" href="http://34.198.145.120:8000/spamviewer/{{channame}}/">{{channame}}</option>
+      {% endfor %}
+    </select>
+  </body>
+
+<script>
+  document.getElementById("channel_selector").onchange = function() {
+  window.location.href = this.children[this.selectedIndex].getAttribute('href');
+  }
+</script>
+
+</html>
