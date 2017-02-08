@@ -1,0 +1,30 @@
+<html>
+  <head>
+    <title>Spam Viewer for User {{username}}</title>
+  </head>
+  <body>	
+    <div id ="twitch_panel" style="float:left; width=700px;">
+      <iframe
+	 src="http://player.twitch.tv/?channel={{username}}"
+	 height="360"
+	 width="640"
+	 frameborder="0"
+	 scrolling="no"
+	 allowfullscreen="true">
+      </iframe>
+    </div>
+    <div id = "compressed_chat" style="float:right; width=500px;">
+      This is the viewer for {{username}}</br>
+      Spam message: {{spamline}}</br>
+      
+      <p>
+	{% for k,v in spammers.iteritems %}
+	{{k}}, {{v}}
+      </p>
+      {% endfor %}
+    </div>
+
+    <div id = "chat_messages"></div>
+    <pre>
+  </body>
+</html>
