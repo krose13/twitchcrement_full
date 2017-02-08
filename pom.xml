@@ -73,31 +73,36 @@ under the License.
 	-->
 
 	<dependencies>
-		<dependency>
-			<groupId>org.apache.flink</groupId>
-			<artifactId>flink-scala_2.11</artifactId>
-			<version>${flink.version}</version>
-		</dependency>
-		<dependency>
-			<groupId>org.apache.flink</groupId>
-			<artifactId>flink-streaming-scala_2.11</artifactId>
-			<version>${flink.version}</version>
-		</dependency>
-		<dependency>
-			<groupId>org.apache.flink</groupId>
-			<artifactId>flink-clients_2.11</artifactId>
-			<version>${flink.version}</version>
-		</dependency>
-		<dependency>
-			<groupId>org.apache.flink</groupId>
-			<artifactId>flink-connector-kafka-0.8_2.10</artifactId>
-			<version>${flink.version}</version>
-		</dependency>
-		<dependency>
-                        <groupId>org.apache.kafka</groupId>
-                        <artifactId>kafka_2.11</artifactId>
-                        <version>0.10.0.0</version>
-                </dependency>
+	  <dependency>
+            <groupId>org.apache.flink</groupId>
+            <artifactId>flink-streaming-contrib_2.11</artifactId>
+            <version>${flink.version}</version>
+          </dependency>
+	  <dependency>
+	    <groupId>org.apache.flink</groupId>
+	    <artifactId>flink-scala_2.11</artifactId>
+	    <version>${flink.version}</version>
+	  </dependency>
+	  <dependency>
+	    <groupId>org.apache.flink</groupId>
+	    <artifactId>flink-streaming-scala_2.11</artifactId>
+	    <version>${flink.version}</version>
+	  </dependency>
+	  <dependency>
+	    <groupId>org.apache.flink</groupId>
+	    <artifactId>flink-clients_2.11</artifactId>
+	    <version>${flink.version}</version>
+	  </dependency>
+	  <dependency>
+	    <groupId>org.apache.flink</groupId>
+	    <artifactId>flink-connector-kafka-0.9_2.11</artifactId>
+	    <version>${flink.version}</version>
+	  </dependency>
+	  <dependency>
+            <groupId>org.apache.kafka</groupId>
+            <artifactId>kafka_2.10</artifactId>
+            <version>0.10.0.0</version>
+          </dependency>
 	</dependencies>
 
 	<profiles>
