@@ -11,14 +11,15 @@ import json
 import msgpack
 
 import time
-
+import os 
 import schedule
 
 import lib.irc as irc_
 from lib.functions_general import *
 import lib.functions_commands as commands
 
-producer = KafkaProducer(bootstrap_servers=['ec2-34-197-212-254.compute-1.amazonaws.com:9092'], value_serializer=msgpack.dumps)
+
+producer = KafkaProducer(bootstrap_servers=[os.environ['KAFKAPORT']], value_serializer=msgpack.dumps)
 
 class Roboraj:
 
