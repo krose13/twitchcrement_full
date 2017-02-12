@@ -1,0 +1,16 @@
+<html>
+  <head>
+  </head>
+  <body>
+
+    <div> You searched for: {{query}} </div>
+
+    <p>
+        {% for row in query_results %}
+        Seen in channel {{row.channel}} {{row.spammers}} times</br>
+    </p>
+    {% endfor %}
+    {{buffer}}
+
+  </body>
+</html>
