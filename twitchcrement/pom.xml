@@ -103,6 +103,11 @@ under the License.
             <artifactId>kafka_2.10</artifactId>
             <version>0.10.0.0</version>
           </dependency>
+	  <dependency>
+	    <groupId>org.apache.flink</groupId>
+	    <artifactId>flink-connector-cassandra_2.10</artifactId>
+	    <version>${flink.version}</version>
+	  </dependency>
 	</dependencies>
 
 	<profiles>

@@ -7,6 +7,8 @@ import org.apache.flink.streaming.util.serialization.SimpleStringSchema
 import org.apache.flink.streaming.util.serialization.TypeInformationSerializationSchema
 import org.apache.flink.streaming.api.windowing.time.Time
 import org.apache.flink.contrib.streaming.DataStreamUtils
+import org.apache.flink.streaming.connectors.cassandra.CassandraSink
+import org.apache.flink.streaming.connectors.cassandra.ClusterBuilder
 import scala.collection.JavaConverters._
 
 import scala.collection.mutable.Map
@@ -14,6 +16,8 @@ import scala.collection.mutable.Map
 import java.util.Properties
 
 object KafkaConnector{
+
+/** Parse a spam message into a Tuple5 for union with chatmessage */
 
        def InterpretSpamMessage(m1:String): Tuple5[String, Int, Int, String, Int] = {
        	   var mTup: Tuple5[String, Int, Int, String, Int] = ("", 0, 0, "", 0)
@@ -31,6 +35,10 @@ object KafkaConnector{
 	   return mTup
 	   }
 
+/** Reduce function to combine spam messages with chat messages.
+    If 2 spam messages arrive in sequence, then reset the count completely becuase the topic isn't active anymore.
+    Otherwise add the new user to a list of uniques or increment the count if not a new unique
+    Then update the number of active and total spam messages. */
 
        def CombineTuples(t1:Tuple5[String, Int, Int, String, Int], t2:Tuple5[String, Int, Int, String, Int]): Tuple5[String, Int, Int, String, Int] = {
        	   var rTup:Tuple5[String, Int, Int, String, Int] = ("",0,0,"", 0)
@@ -74,10 +82,6 @@ object KafkaConnector{
 	   else{
 		rTup = t2
 	   } 
-	   println("These tuples")
-	   println(t1.productIterator.mkString(" "))
-	   println(t2.productIterator.mkString(" "))
-	   println(rTup.productIterator.mkString(" "))
 	   return rTup
        }
 
@@ -89,29 +93,40 @@ object KafkaConnector{
 	   
 	   val p = new Properties
 
-	   p.setProperty("bootstrap.servers", "ec2-34-197-212-254.compute-1.amazonaws.com:9092")
-	   p.setProperty("zookeeper.connect", "ec2-34-197-212-254.compute-1.amazonaws.com:2181")
+	   /** Bootstrap Kafka properties for flink process */
+
+	   p.setProperty("bootstrap.servers", sys.env("KAFKAPORT").toString)
+	   p.setProperty("zookeeper.connect", sys.env("ZOOKEEPERPORT").toString)
 	   p.setProperty("group.id", "twitchcrement")
 	   p.setProperty("consumer.id", "flitch")
 
-	   println("Streaming")
-
 	   val stream = env.addSource(new FlinkKafkaConsumer09[String]("chatmessage", new SimpleStringSchema(), p))
+
+	   /** remove junk character from msgpack encoding */
+
 	   val toRemove = "�".toSet
 
-/** All messages */
+
+/** chat messages */
+
 	   val streamMessages =stream
 	       .map { w => w.filterNot(toRemove) }
 	       .map { w => ((w.split(" ")(w.indexOf("channel")+1).toString() + " " + w.split(" ").drop(6).mkString(" ")), 1, 0, (w.split(" ")(4).toString() + " 1"), 2)}
 
 
+
 /** Acquire list of most recent spam terms */
+
 	   val SpamStream = env.addSource(new FlinkKafkaConsumer09[String]("spammessage", new SimpleStringSchema(), p))
 
 /** Process Spam terms */
+
 	   val processedSpamStream = SpamStream
 	       .map{ w => InterpretSpamMessage(w) }
+
 	       
+/** Union and reduce stream with chat and spam messages */
+
 	   val streamWithSpam = streamMessages.union(processedSpamStream)
 	       .keyBy(0)
 	       .reduce((left, right) => CombineTuples(left, right))
@@ -128,13 +143,20 @@ object KafkaConnector{
 	       .maxBy(1)
                .filter{ w => w._2 > 1 }  
 	       .map { w => ( w._1, 0, w._3+w._2, w._4, w._5) }
+
+	   val finalSpamCounts = windowSpamCounts
                .map { w => w.productIterator.mkString(" ") }
 
-/**	   streamMessages.map{ w => w.productIterator.mkString(" ") }.print.setParallelism(1) */
+	   val cassandraJavaCounts = windowSpamCounts 
+	       .map{ w => (w._1.split(" ")(0), w._1.split(" ").drop(1).mkString(" "), System.currentTimeMillis, (w._5/2).toString()) }
+ 	   
+/** Print to log */
 
-	   windowSpamCounts.print().setParallelism(1) 
+	   finalSpamCounts.print().setParallelism(1)  
 
-	   windowSpamCounts.addSink(new FlinkKafkaProducer09[String]("ec2-34-197-212-254.compute-1.amazonaws.com:9092", "spammessage", new SimpleStringSchema()))
+/** Push to Kafka again */
+	   finalSpamCounts.addSink(new FlinkKafkaProducer09[String](sys.env("KAFKAPORT").toString, "spammessage", new SimpleStringSchema()))
+
 
 	   env.execute("KafkaConnector")
        }
