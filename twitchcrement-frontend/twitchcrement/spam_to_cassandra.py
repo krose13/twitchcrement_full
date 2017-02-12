@@ -24,7 +24,6 @@ while True:
         spamstr = ' '.join(smw)
         realspammers = (int(nspammers)/2) 
         timestring = str(int(time.time()))
-        print mw[0], spamstr, timestring, str(realspammers)
         session.execute(
             """
             INSERT INTO spamwindowed (channel, message, time, spammers)

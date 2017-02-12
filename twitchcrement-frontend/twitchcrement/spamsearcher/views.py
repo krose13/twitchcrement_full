@@ -5,7 +5,7 @@ from cassandra.cluster import Cluster
 
 from django.template import loader, Context
 
-
+import os
 
 # Create your views here.
 
@@ -13,7 +13,7 @@ def index(request):
         return render(request, 'spamsearcher/index.html', {})
 
 def search(request):
-	cluster = Cluster(['172.31.1.201'], port=9042)
+	cluster = Cluster([os.environ['CASSANDRA_ADDRESS']], port=os.environ['CASSANDRA_PORT'])
 	session = cluster.connect()
 	session.set_keyspace('spamevents')
 
@@ -25,9 +25,6 @@ def search(request):
                 """,
                 (query,)
         )
-
-#        for row in query_results:
-#                print row
 
         t = loader.get_template('spamsearcher/results.html')
         c = Context({'query': query, 'query_results': query_results,})
