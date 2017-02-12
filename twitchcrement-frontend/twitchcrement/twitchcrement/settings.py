@@ -27,7 +27,7 @@ SECRET_KEY = '5l^ke9t!(9uf5p2m%1l=e_=(vccedp)9dts6&&*sj+i(quyxyy'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = [u'34.198.145.120', u'ec2-34-198-145-120.compute-1.amazonaws.com']
+ALLOWED_HOSTS = [u'34.198.145.120', u'ec2-34-198-145-120.compute-1.amazonaws.com', u'twitchcrement.us', u'twitchcrement.us:8000']
 
 
 # Application definition
@@ -39,6 +39,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'channels',
 ]
 
 MIDDLEWARE = [
