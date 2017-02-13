@@ -10,6 +10,8 @@ import time
 import msgpack
 
 import sys
+import os
+
 reload(sys)
 sys.setdefaultencoding('utf8')
 
@@ -27,10 +29,16 @@ def spamviewer_index(request):
 
 
 from kafka import KafkaConsumer
-chat_template = loader.get_template("spamviewer/spamviewer_user.html")
+user_template = loader.get_template("spamviewer/spamviewer_user.html")
 buffer = ' ' * 1024
 
-def gen_rendered(username=""):
+def twitch_user_page(request, username=""):
+        user_context = Context({"username" : username})
+#        response = StreamingHttpResponse(spam_rendered(username))
+        return HttpResponse(user_template.render(user_context))
+
+
+def spam_rendered(username=""):
         consumer = KafkaConsumer('spammessage',
                                  auto_offset_reset='latest',
                                  enable_auto_commit=True,
@@ -43,10 +51,6 @@ def gen_rendered(username=""):
                 channelname = '#%s' % username
                 spammers = {}
                 mydiv = 0
-                print username
-                chat_context  = Context({"username" : username, "spamline" : spamstr, "spammers" : spammers, "buffer" : buffer})
-
-                yield chat_template.render(chat_context)
                 for message in consumer:
                         mw = message.value.split(' ')
                         if mw[0] == channelname:
@@ -63,18 +67,35 @@ def gen_rendered(username=""):
                                         spamcount = mw[mwlen-(n*2)]
                                         spammers[spamname] = spamcount
                                 spamlist.append(spamstr)
-                                print spamdiv, spamstr
                                 httpstring = """ <input type="button" onclick="return toggleMe('%s')" value="%s"><br> """ % (spamdiv, spamstr)
                                 httpstring += """ <div id="%s" style="display:none"> """ % spamdiv
                                 for spamname in spammers:
                                         httpstring += """%s, %s </br>""" %(spamname, spammers[spamname])
                                 httpstring += '</div><br>'
-                                print spamstr
                                 yield httpstring
 
-def twitch_user_page(request, username=""):
-        response = StreamingHttpResponse(gen_rendered(username))  
+def chat_rendered(username=""):
+        consumer = KafkaConsumer('chatmessage',
+                                 auto_offset_reset='latest',
+                                 enable_auto_commit=True,
+                                 bootstrap_servers=[os.environ['KAFKAPORT']],
+                                 value_deserializer=msgpack.unpackb
+                         )
+        while True:
+                for message in consumer:
+                        channelname = '#%s' % username
+                        if message.value[' channel '] == channelname:
+                                httpstring = """<p> <i>%s</i> : %s </p>""" % (message.value[' username '], message.value[' message '])
+                                yield httpstring
+
+
+
+def twitch_user_spam(request, username=""):
+        response = StreamingHttpResponse(spam_rendered(username))  
         return response
 
 
                                  
+def twitch_user_chat(request, username=""):
+        response = StreamingHttpResponse(chat_rendered(username))
+        return response

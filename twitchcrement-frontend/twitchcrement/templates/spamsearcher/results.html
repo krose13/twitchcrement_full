@@ -1,13 +1,41 @@
 <html>
   <head>
+     <style>
+
+      h1 {text-align:center; font: 40px helvetica;}
+
+      table {
+      border-collapse: collapse;
+      margin: auto;
+      }
+      
+      table, th, td {
+      border: 2px solid purple;
+      padding: 15px;
+      text-align: left;
+      }
+
+      th {
+      background-color: purple;
+      color: white;
+      }
+
+    </style>
+
   </head>
   <body>
 
-    <div> You searched for: {{query}} </div>
+    <div><h1> You searched for: <i>{{query}}</i> </h1></div>
 
     <p>
-        {% for row in query_results %}
-        Seen in channel {{row.channel}} {{row.spammers}} times</br>
+      <table border="1">
+	<tr>
+	  <th>Channel</th><th>Time Observed</th><th>Unique Users</th>
+	</tr>
+	<tr>
+          {% for row in query_results %}
+          <td>{{row.channel}}</td><td>{{row.time}}</td><td>{{row.spammers}} users</td>
+	</tr>
     </p>
     {% endfor %}
     {{buffer}}

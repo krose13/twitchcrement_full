@@ -1,13 +1,41 @@
 
 <html>
   <head>
+    <style>
+
+      h1 {text-align:center; font: 40px helvetica;}
+
+      input[type=text]{width:60%; 
+      margin: auto;
+      padding: 12px 20px;  
+      box-sizing: border-box;
+      border: 2px solid purple;
+      border-radius: 4px;
+      outline: none;
+      }
+
+      input[type=submit]{
+      background-color: purple;
+      border: 2px solid purple;
+      border-radius: 4px;
+      color: white;
+      padding: 16px 32px;
+      text-decoration: none;
+      margin: 4px 2px;
+      cursor: pointer;
+      font: 15px sans-serif;
+      }
+
+    </style>
+
+
   </head>
   <body>
 
-    <h2>Twitchcrement Spamsearcher</h2></br>
+    <h1>Twitchcrement Spamsearcher</h1></br>
 
-    <form method="get" action="/spamsearcher/results/" class="navbar-form pull-right">
-      <input type ="text" id="searchBox" class = "input-medium search-query" name="q" placeholder="Search">
+    <form method="get" action="/spamsearcher/results/">
+      <input type ="text" id="searchBox" class = "input-medium search-query" name="q" placeholder="Enter spam term (Kappa...)">
       <input type ="submit" class="btn" value="Search">
     </form>
 
