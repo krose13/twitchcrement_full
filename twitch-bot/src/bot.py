@@ -39,13 +39,12 @@ class Roboraj:
 		while True:
 			schedule.run_pending()
 			data = sock.recv(config['socket_buffer_size']).rstrip()
-#			print data
 			if len(data) == 0:
 				pp('Connection was lost, reconnecting.')
 				sock = self.irc.get_irc_socket_object()
 
-#			if config['debug']:
-#				print data
+			if config['debug']:
+				print data
 
 			# check for ping, reply with pong
 			irc.check_for_ping(data)
@@ -59,8 +58,6 @@ class Roboraj:
                                 
 
                                 producer.send('chatmessage', {' channel ': channel, ' username ': username, ' message ': message})
-
-#				ppi(channel, message, username)
 
 				# check if message is a command with no arguments
 				if commands.is_valid_command(message) or commands.is_valid_command(message.split(' ')[0]):
