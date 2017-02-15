@@ -1,0 +1,13 @@
+{% load static %}
+
+<html>
+  <head>
+  </head>
+  <body>
+
+    <h2>Twitchcrement</h2></br>
+    <a href="http://twitchcrement.us:8000/spamviewer/">See a channel's spam</a></br>
+    <a href="http://twitchcrement.us:8000/spamsearcher/">Search for historical spam records</a></br>
+
+  </body>		
+</html>

@@ -10,6 +10,8 @@ import time
 import msgpack
 
 import sys
+import os
+
 reload(sys)
 sys.setdefaultencoding('utf8')
 
@@ -27,18 +29,21 @@ def spamviewer_index(request):
 
 
 from kafka import KafkaConsumer
-chat_template = loader.get_template("spamviewer/spamviewer_user.html")
+user_template = loader.get_template("spamviewer/spamviewer_user.html")
 buffer = ' ' * 1024
 
-def gen_rendered(username=""):
+def twitch_user_page(request, username=""):
+        user_context = Context({"username" : username})
+#        response = StreamingHttpResponse(spam_rendered(username))
+        return HttpResponse(user_template.render(user_context))
+
+
+def spam_rendered(username=""):
         consumer = KafkaConsumer('spammessage',
                                  auto_offset_reset='latest',
                                  enable_auto_commit=True,
-                                 bootstrap_servers=['ec2-34-197-212-254.compute-1.amazonaws.com:9092']
-#                                 value_deserializer=msgpack.unpackb                                                                  
+                                 bootstrap_servers=[os.environ['KAFKAPORT']]
                          )
-#        x = consumer.poll(100)
-#        consumer.seek_to_end()
         
         while True:
                 spamlist = []
@@ -46,10 +51,6 @@ def gen_rendered(username=""):
                 channelname = '#%s' % username
                 spammers = {}
                 mydiv = 0
-                print username
-                chat_context  = Context({"username" : username, "spamline" : spamstr, "spammers" : spammers, "buffer" : buffer})
-
-                yield chat_template.render(chat_context)
                 for message in consumer:
                         mw = message.value.split(' ')
                         if mw[0] == channelname:
@@ -66,56 +67,35 @@ def gen_rendered(username=""):
                                         spamcount = mw[mwlen-(n*2)]
                                         spammers[spamname] = spamcount
                                 spamlist.append(spamstr)
-                                print spamdiv, spamstr
                                 httpstring = """ <input type="button" onclick="return toggleMe('%s')" value="%s"><br> """ % (spamdiv, spamstr)
                                 httpstring += """ <div id="%s" style="display:none"> """ % spamdiv
                                 for spamname in spammers:
                                         httpstring += """%s, %s </br>""" %(spamname, spammers[spamname])
                                 httpstring += '</div><br>'
-                                print spamstr
                                 yield httpstring
 
-def twitch_user_page(request, username=""):
-        response = StreamingHttpResponse(gen_rendered(username))  
+def chat_rendered(username=""):
+        consumer = KafkaConsumer('chatmessage',
+                                 auto_offset_reset='latest',
+                                 enable_auto_commit=True,
+                                 bootstrap_servers=[os.environ['KAFKAPORT']],
+                                 value_deserializer=msgpack.unpackb
+                         )
+        while True:
+                for message in consumer:
+                        channelname = '#%s' % username
+                        if message.value[' channel '] == channelname:
+                                httpstring = """<p> <i>%s</i> : %s </p>""" % (message.value[' username '], message.value[' message '])
+                                yield httpstring
+
+
+
+def twitch_user_spam(request, username=""):
+        response = StreamingHttpResponse(spam_rendered(username))  
         return response
-#        return HttpResponse("This is the page for %s" % username)
-#        consumer = KafkaConsumer('spammessage',
-#                                 auto_offset_reset='latest',
-#                                 enable_auto_commit=True,
-#                                 bootstrap_servers=['ec2-34-197-212-254.compute-1.amazonaws.com:9092']
-#                                 value_deserializer=msgpack.unpackb
-#                         )
-#        x = consumer.poll(100)
-#        consumer.seek_to_end()
-#        while True:
-#                spamlist = []
-#                channelname = '#%s' % username
-#                for message in consumer:                 
-#                        mw = message.value.split(' ')
-#                        if mw[0] == channelname:
-#                                mwlen = len(mw)
-#                                nspammers = (mw[mwlen-1])
-#                                if nspammers != "":
-#                                        smw = mw[1:(mwlen-3-int(nspammers))]
-#                                        spamstr = ' '.join(smw) + ', ' + mw[mwlen-2 -int(nspammers)]
-#                                        realspammers = (int(nspammers)/2)+1
-#                                        spammers = {}
-#                                        for n in range(1,realspammers):
-#                                                spamname = mw[mwlen-1-(n*2)]
-#                                                spamcount = mw[mwlen-(n*2)]
-#                                                spammers[spamname] = spamcount
-#                                        spamlist.append(spamstr)
-#                                        if len(spamlist) == 1:
-#                                                httpstring = ""
-#                                                for spamline in spamlist:
-#                                                        httpstring += "Spam Message:<br/>"
-#                                                        httpstring += spamline
-#                                                        httpstring += "<br/>"
-#                                                httpstring += "<br/>Spammers:<br/><br/>"
-#                                                for spammer in spammers:
-#                                                        httpstring += "%s, %s<br/>" % (spammer, spammers[spammer] )
-#response = StreamingHttpResponse(gen_rendered(username))
-#return render(request, "spamviewer/spamviewer_user.html", {"username" : username, "spamline" : spamstr, "spammers" : spammers}) 
 
 
                                  
+def twitch_user_chat(request, username=""):
+        response = StreamingHttpResponse(chat_rendered(username))
+        return response

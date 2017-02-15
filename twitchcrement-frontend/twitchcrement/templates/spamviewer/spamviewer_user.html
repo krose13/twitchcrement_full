@@ -4,44 +4,47 @@
   </head>
   <body>	
     <script type = "text/javascript">
-      function toggleMe(a){
-      var e = document.getElementById(a);
-      if(!e)return true;
-      if(e.style.display=="none"){
-      e.style.display="block"
-      }
-      else{
-      e.style.display="none"
-      }
-      return true;
-      }
-    </script>
+          function toggleMe(a){
+          var e = document.getElementById('spam_frame').contentWindow.document.GetElementById(a);
+          if(!e)return true;
+          if(e.style.display=="none"){
+          e.style.display="block"
+          }
+          else{
+          e.style.display="none"
+          }
+          return true;
+          }
+        </script>
 
-    <div id ="twitch_panel" style="float:left; width=700px;">
+
+    <div id ="twitch_panel" style="float:left; width=50%;">
       <iframe
 	 src="http://player.twitch.tv/?channel={{username}}"
-	 height="360"
-	 width="640"
+	 height="540"
+	 width="960"
 	 frameborder="0"
 	 scrolling="no"
 	 allowfullscreen="true">
       </iframe>
       </br>
     </div>
-    <div id = "compressed_chat" style="float:left; width=300px">
-      This is the viewer for {{username}}</br>
-      Spam message: {{spamline}}</br>
-      
-      <p>
-	{% for k,v in spammers.iteritems %}
-	{{k}}, {{v}}
-      </p>
-      {% endfor %}
-      {{buffer}}
+    <div id = "compressed_spam" style="float:left; width=500px">
+      <iframe 
+	 name="spam_frame" id="spam_frame"
+	 src="http://twitchcrement.us:8000/spamviewer/spam/{{username}}" width="600" height="1000">
       </br>
+      </iframe>
     </div>
     
-    <div id = "chat_messages"></div>
-    <pre>
+    <div id = "chat_messages" style="float:left; width=500px">
+      <iframe
+         name="chat_frame" id="chat_frame"
+         src="http://twitchcrement.us:8000/spamviewer/chat/{{username}}" width="600" height="1000">
+      </br>
+      </iframe>
+
+    </div>
+    
   </body>
 </html>
