@@ -28,3 +28,49 @@ the spamsearcherapp to return a historical list of channels where a given spam m
 The spamviewer app provides a list of available channels (chosen from the top 500 active twitch channels by periodically
 querying the twitch HTTP API).  Upon selection twitchcrement displays the channel selected, as well as a stream of 
 observed spam messages from that channel and a stream of unfiltered chat messages for comparison. 
+
+
+## Usage
+
+At runtime this module assumes you have the following environment variables set:
+
+```
+KAFKAPORT = [Kafka cluster endpoint]
+ZOOKEEPERPORT = [Zookeeper endpoint]
+CASSANDRA_ADDRESS = [Master node of Cassandra cluster]
+CASSANDRA_PORT = [listener port for Cassandra]
+```
+
+The twitch scraper can be initiated by:
+
+```
+cd twitch-bot
+./serve.py
+```
+
+This assumes you have a text file containing a list of twitch channel names, the location of which is specified on line 15 of
+twitch-bot/src/lib/irc.py:
+
+`f = open([file_containing_channel_names.txt])`
+
+No processing is performed in Kafka in this module.  In development a cluster with 1 master and 3 worker nodes was used to run Kafka.  2 topics ("chatmessage", "spammessage") are produced and consumed by applications within twitchcrement.  Each topic is consumed by both the Django frontend and the Flink streaming process; therefore it is recommended to have at least 2 partitions for each topic. 
+
+From the home directory of twitchcrement, the flink streaming service may be started by:
+
+```
+cd twitchcrement
+mvn package -Pbuild-jar
+```
+
+Then start the flink cluster and run:
+
+```
+/usr/local/flink/bin/flink run target/twitchcrement-1.0-jar-with-dependencies.jar
+```
+
+The front-end may be started as normal for a django application.  Remember to add your domain to ALLOWED_HOSTS in twitchcrement/settings.py.
+
+```
+cd twitchcrement-frontend
+python manage.py runserver [elastic IP]:[port]
+```
